@@ -70,7 +70,7 @@ export class FilmsRepositoryMongo implements FilmsRepository, OnModuleInit {
     return {
       id: s.id,
       daytime: s.daytime,
-      hall: s.hall,
+      hall: String(s.hall),
       rows: s.rows,
       seats: s.seats,
       price: s.price,
