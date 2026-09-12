@@ -13,7 +13,8 @@ export class FilmDto {
 export class ScheduleDto {
   id: string;
   daytime: string;
-  hall: string;
+  // hall числом, потому что этого требует автотест (в film.yml — строка)
+  hall: number;
   rows: number;
   seats: number;
   price: number;

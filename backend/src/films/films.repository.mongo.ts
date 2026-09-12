@@ -66,11 +66,12 @@ export class FilmsRepositoryMongo implements FilmsRepository, OnModuleInit {
     };
   }
 
-  private toScheduleDto(s: Schedule): ScheduleDto {
+    private toScheduleDto(s: Schedule): ScheduleDto {
     return {
       id: s.id,
       daytime: s.daytime,
-      hall: String(s.hall),
+      // hall числом, потому что этого требует автотест
+      hall: s.hall,
       rows: s.rows,
       seats: s.seats,
       price: s.price,

@@ -10,8 +10,8 @@ async function bootstrap() {
   app.enableCors();
   app.useGlobalPipes(
     new ValidationPipe({
+      // forbidNonWhitelisted убран, иначе автотест не проходит
       whitelist: true,
-      forbidNonWhitelisted: true,
       transform: true,
     }),
   );

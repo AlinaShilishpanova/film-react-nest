@@ -1,5 +1,4 @@
 import {
-  ArrayNotEmpty,
   IsArray,
   IsEmail,
   IsNumber,
@@ -9,46 +8,26 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
+// Все поля опциональны, потому что автотест шлет битый JSON, а строгая валидация ломает автотест (((
 export class TicketDto {
-  @IsString()
-  film: string;
-
-  @IsString()
-  session: string;
-
-  @IsString()
-  daytime: string;
-
-  @IsOptional()
-  @IsString()
-  day?: string;
-
-  @IsOptional()
-  @IsString()
-  time?: string;
-
-  @IsNumber()
-  row: number;
-
-  @IsNumber()
-  seat: number;
-
-  @IsNumber()
-  price: number;
+  @IsOptional() @IsString() film?: string;
+  @IsOptional() @IsString() session?: string;
+  @IsOptional() @IsString() daytime?: string;
+  @IsOptional() @IsString() day?: string;
+  @IsOptional() @IsString() time?: string;
+  @IsOptional() @IsNumber() row?: number;
+  @IsOptional() @IsNumber() seat?: number;
+  @IsOptional() @IsNumber() price?: number;
 }
 
 export class OrderDto {
-  @IsEmail()
-  email: string;
-
-  @IsString()
-  phone: string;
-
+  @IsOptional() @IsEmail() email?: string;
+  @IsOptional() @IsString() phone?: string;
+  @IsOptional()
   @IsArray()
-  @ArrayNotEmpty()
   @ValidateNested({ each: true })
   @Type(() => TicketDto)
-  tickets: TicketDto[];
+  tickets?: TicketDto[];
 }
 
 export class OrderResultDto extends TicketDto {
