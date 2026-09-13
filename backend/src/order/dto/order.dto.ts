@@ -1,33 +1,63 @@
 import {
+  ArrayNotEmpty,
   IsArray,
   IsEmail,
+  IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
+  Min,
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
-// Все поля опциональны, потому что автотест шлет битый JSON, а строгая валидация ломает автотест (((
 export class TicketDto {
-  @IsOptional() @IsString() film?: string;
-  @IsOptional() @IsString() session?: string;
-  @IsOptional() @IsString() daytime?: string;
-  @IsOptional() @IsString() day?: string;
-  @IsOptional() @IsString() time?: string;
-  @IsOptional() @IsNumber() row?: number;
-  @IsOptional() @IsNumber() seat?: number;
-  @IsOptional() @IsNumber() price?: number;
+  @IsString()
+  @IsNotEmpty()
+  film: string;
+
+  @IsString()
+  @IsNotEmpty()
+  session: string;
+
+  @IsString()
+  @IsNotEmpty()
+  daytime: string;
+
+  @IsOptional()
+  @IsString()
+  day?: string;
+
+  @IsOptional()
+  @IsString()
+  time?: string;
+
+  @IsNumber()
+  @Min(1)
+  row: number;
+
+  @IsNumber()
+  @Min(1)
+  seat: number;
+
+  @IsNumber()
+  @Min(0)
+  price: number;
 }
 
 export class OrderDto {
-  @IsOptional() @IsEmail() email?: string;
-  @IsOptional() @IsString() phone?: string;
-  @IsOptional()
+  @IsEmail()
+  email: string;
+
+  @IsString()
+  @IsNotEmpty()
+  phone: string;
+
   @IsArray()
+  @ArrayNotEmpty()
   @ValidateNested({ each: true })
   @Type(() => TicketDto)
-  tickets?: TicketDto[];
+  tickets: TicketDto[];
 }
 
 export class OrderResultDto extends TicketDto {

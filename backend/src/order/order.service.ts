@@ -15,13 +15,8 @@ export class OrderService {
 
   async createOrder(order: OrderDto): Promise<OrderResultDto[]> {
     const results: OrderResultDto[] = [];
-    const tickets = order?.tickets ?? [];
 
-    for (const ticket of tickets) {
-      if (!ticket?.film || !ticket?.session) {
-        continue;
-      }
-
+    for (const ticket of order.tickets) {
       const film = await this.filmsRepository.findById(ticket.film);
       if (!film) {
         throw new BadRequestException({ error: 'Film not found' });
@@ -41,7 +36,7 @@ export class OrderService {
         seatKey,
       ]);
 
-      results.push({ ...ticket, id: randomUUID() } as OrderResultDto);
+      results.push({ ...ticket, id: randomUUID() });
     }
 
     await this.orderRepository.save(results);
