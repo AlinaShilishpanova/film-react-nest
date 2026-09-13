@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { MongooseModule } from '@nestjs/mongoose';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import * as path from 'node:path';
 
-import { configProvider } from './app.config.provider';
 import { FilmsModule } from './films/films.module';
 import { OrderModule } from './order/order.module';
+import { Film, Schedule } from './films/films.entity';
 
 @Module({
   imports: [
@@ -14,13 +14,16 @@ import { OrderModule } from './order/order.module';
       isGlobal: true,
       cache: true,
     }),
-    MongooseModule.forRootAsync({
+    TypeOrmModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        uri: configService.get<string>(
-          'DATABASE_URL',
-          'mongodb://127.0.0.1:27017/film',
-        ),
+        type: 'postgres',
+        url: configService.get<string>('DATABASE_URL'),
+        username: configService.get<string>('DATABASE_USERNAME'),
+        password: configService.get<string>('DATABASE_PASSWORD'),
+        client_encoding: 'UTF8',
+        entities: [Film, Schedule],
+        synchronize: false,
       }),
     }),
     ServeStaticModule.forRoot({
@@ -31,6 +34,5 @@ import { OrderModule } from './order/order.module';
     OrderModule,
   ],
   controllers: [],
-  providers: [configProvider],
 })
 export class AppModule {}
