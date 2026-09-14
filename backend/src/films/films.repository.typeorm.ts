@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { FilmDto, ScheduleDto } from './dto/films.dto';
 import { FilmWithSchedule, FilmsRepository } from './films.repository';
 import { Film, Schedule } from './films.entity';
@@ -12,12 +12,11 @@ export class FilmsRepositoryTypeorm implements FilmsRepository {
     private readonly filmRepository: Repository<Film>,
     @InjectRepository(Schedule)
     private readonly scheduleRepository: Repository<Schedule>,
+    private readonly dataSource: DataSource,
   ) {}
 
   async findAll(): Promise<FilmDto[]> {
-    const films = await this.filmRepository.find({
-      order: { id: 'ASC' },
-    });
+    const films = await this.filmRepository.find({ order: { id: 'ASC' } });
     return films.map((film) => this.toFilmDto(film));
   }
 
@@ -34,21 +33,21 @@ export class FilmsRepositoryTypeorm implements FilmsRepository {
     };
   }
 
-  async saveTakenSeats(
-    filmId: string,
-    sessionId: string,
-    seats: string[],
+  async reserveSeats(
+    items: Array<{ filmId: string; sessionId: string; seats: string[] }>,
   ): Promise<void> {
-    const schedule = await this.scheduleRepository.findOne({
-      where: { id: sessionId, film: { id: filmId } },
+    await this.dataSource.transaction(async (manager) => {
+      for (const item of items) {
+        const schedule = await manager.findOne(Schedule, {
+          where: { id: item.sessionId, film: { id: item.filmId } },
+          lock: { mode: 'pessimistic_write' },
+        });
+        if (!schedule) continue;
+        const existing = schedule.taken ?? [];
+        schedule.taken = [...existing, ...item.seats];
+        await manager.save(schedule);
+      }
     });
-    if (!schedule) return;
-
-    const existing = schedule.taken
-      ? schedule.taken.split(',').filter(Boolean)
-      : [];
-    schedule.taken = [...existing, ...seats].join(',');
-    await this.scheduleRepository.save(schedule);
   }
 
   private toFilmDto(film: Film): FilmDto {
@@ -56,7 +55,7 @@ export class FilmsRepositoryTypeorm implements FilmsRepository {
       id: film.id,
       rating: film.rating,
       director: film.director,
-      tags: film.tags ? film.tags.split(',') : [],
+      tags: film.tags ?? [],
       title: film.title,
       about: film.about,
       description: film.description,
@@ -73,7 +72,7 @@ export class FilmsRepositoryTypeorm implements FilmsRepository {
       rows: s.rows,
       seats: s.seats,
       price: s.price,
-      taken: s.taken ? s.taken.split(',').filter(Boolean) : [],
+      taken: s.taken ?? [],
     };
   }
 }

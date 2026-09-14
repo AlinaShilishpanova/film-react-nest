@@ -17,8 +17,8 @@ export class Film {
   @Column()
   director: string;
 
-  @Column()
-  tags: string;
+  @Column({ type: 'text', array: true, default: [] })
+  tags: string[];
 
   @Column()
   image: string;
@@ -59,8 +59,8 @@ export class Schedule {
   @Column('double precision')
   price: number;
 
-  @Column()
-  taken: string;
+  @Column({ type: 'text', array: true, default: [] })
+  taken: string[];
 
   @ManyToOne(() => Film, (film) => film.schedule)
   film: Film;

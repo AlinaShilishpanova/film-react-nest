@@ -1,47 +1,56 @@
-# Film! — Backend (Nest.js + MongoDB)
+# FILM!
 
-Бэкенд онлайн-сервиса бронирования билетов в кинотеатр.
+Онлайн-сервис бронирования билетов в кинотеатр. Состоит из фронтенда на React (Vite) и бэкенда на Nest.js с PostgreSQL.
+
+## Структура проекта
+
+- `backend/` — Nest.js API (порт 3000)
+- `frontend/` — React-приложение (порт 5173)
 
 ## Требования
 
 - Node.js 18+
-- MongoDB (локально или в облаке)
+- PostgreSQL
 
-## Установка
+## Установка и запуск
+
+### PostgreSQL
+
+Установите PostgreSQL и создайте базу данных и пользователя. Параметры подключения укажите в `backend/.env`.
+
+Тестовые данные для заполнения БД лежат в `backend/test/`:
+- `prac.init.sql` — создаёт таблицы
+- `prac.films.sql` — заполняет таблицу фильмов
+- `prac.shedules.sql` — заполняет таблицу сеансов
+
+### Бэкенд
 
 ```bash
+cd backend
 npm install
-```
-
-## Настройка окружения
-
-Скопируйте `.env.example` в `.env` и при необходимости отредактируйте:
-
-```bash
 cp .env.example .env
+npm run start:dev
 ```
 
-Параметры:
+Параметры `.env`:
 - `PORT` — порт приложения (по умолчанию `3000`)
-- `DATABASE_DRIVER` — драйвер БД (`mongodb`)
-- `DATABASE_URL` — строка подключения к MongoDB
+- `DATABASE_DRIVER` — драйвер БД (`postgres`)
+- `DATABASE_URL` — строка подключения к PostgreSQL
+- `DATABASE_HOST`, `DATABASE_PORT`, `DATABASE_NAME` — параметры подключения
+- `DATABASE_USERNAME`, `DATABASE_PASSWORD` — логин и пароль пользователя БД
 - `DEBUG` — отладочные логи
 
-## Запуск
+### Фронтенд
+
+Во втором терминале:
 
 ```bash
-# development (с автоперезагрузкой)
-npm run start:dev
-
-# production
-npm run build
-npm run start:prod
+cd frontend
+npm install
+npm run dev
 ```
 
-## Заполнение базы начальными данными
-
-При первом старте, если коллекция `films` пуста, приложение автоматически
-загрузит фильмы из `src/films/data/films.json`.
+Откройте `http://localhost:5173/`.
 
 ## API
 
