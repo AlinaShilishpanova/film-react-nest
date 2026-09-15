@@ -15,6 +15,11 @@ export class OrderService {
 
   async createOrder(order: OrderDto): Promise<OrderResultDto[]> {
     const results: OrderResultDto[] = [];
+    const toReserve: Array<{
+      filmId: string;
+      sessionId: string;
+      seatKey: string;
+    }> = [];
 
     for (const ticket of order.tickets) {
       const film = await this.filmsRepository.findById(ticket.film);
@@ -32,12 +37,29 @@ export class OrderService {
         throw new BadRequestException({ error: 'Seat already taken' });
       }
 
-      await this.filmsRepository.saveTakenSeats(ticket.film, ticket.session, [
-        seatKey,
-      ]);
+      if (
+        toReserve.some(
+          (r) => r.sessionId === ticket.session && r.seatKey === seatKey,
+        )
+      ) {
+        throw new BadRequestException({ error: 'Seat already taken' });
+      }
 
+      toReserve.push({
+        filmId: ticket.film,
+        sessionId: ticket.session,
+        seatKey,
+      });
       results.push({ ...ticket, id: randomUUID() });
     }
+
+    await this.filmsRepository.reserveSeats(
+      toReserve.map((r) => ({
+        filmId: r.filmId,
+        sessionId: r.sessionId,
+        seats: [r.seatKey],
+      })),
+    );
 
     await this.orderRepository.save(results);
     return results;

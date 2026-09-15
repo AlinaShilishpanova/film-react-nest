@@ -7,10 +7,8 @@ export interface FilmWithSchedule extends FilmDto {
 export interface FilmsRepository {
   findAll(): Promise<FilmDto[]>;
   findById(id: string): Promise<FilmWithSchedule | null>;
-  saveTakenSeats(
-    filmId: string,
-    sessionId: string,
-    seats: string[],
+  reserveSeats(
+    items: Array<{ filmId: string; sessionId: string; seats: string[] }>,
   ): Promise<void>;
 }
 
