@@ -1,17 +1,91 @@
-version: '3.8'
-
 services:
-  pg:
-    image: postgres:16
-    container_name: postgres_container
+  database:
+    image: postgres:16-alpine
+    container_name: film_database
+    restart: always
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: films
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     volumes:
-      - pg-data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - film_network
+    expose:
+      - '5432'
+
+  backend:
+    image: ghcr.io/${GITHUB_OWNER}/film-backend:latest
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: film_backend
+    restart: always
+    env_file:
+      - .env
+    environment:
+      DATABASE_HOST: database
+      DATABASE_PORT: 5432
+      DATABASE_NAME: ${POSTGRES_DB}
+      DATABASE_USERNAME: ${POSTGRES_USER}
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD}
+    depends_on:
+      - database
+    networks:
+      - film_network
+    expose:
+      - '3000'
+
+  frontend:
+    image: ghcr.io/${GITHUB_OWNER}/film-frontend:latest
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: film_frontend
+    restart: always
+    volumes:
+      - frontend_dist:/volume
+    networks:
+      - film_network
+
+  nginx:
+    image: ghcr.io/${GITHUB_OWNER}/film-nginx:latest
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: film_nginx
+    restart: always
     ports:
-      - "5432:5432"
+      - '80:80'
+    volumes:
+      - frontend_dist:/usr/share/nginx/html:ro
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - film_network
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: film_pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    ports:
+      - '8080:80'
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - database
+    networks:
+      - film_network
 
 volumes:
-  pg-data:
+  postgres_data:
+  pgadmin_data:
+  frontend_dist:
+
+networks:
+  film_network:
+    driver: bridge
